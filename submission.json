@@ -1,45 +1,36 @@
 {
-  "backend_url": "http://localhost:5000",
-  "login_credentials": [
-    {
+  "testCredentials": {
+    "superAdmin": {
       "email": "superadmin@system.com",
       "password": "Admin@123",
-      "role": "super_admin"
+      "role": "super_admin",
+      "tenantId": null
     },
-    {
-      "email": "admin@demo.com",
-      "password": "Demo@123",
-      "role": "tenant_admin"
-    },
-    {
-      "email": "user1@demo.com",
-      "password": "User@123",
-      "role": "user"
-    },
-    {
-      "email": "user2@demo.com",
-      "password": "User@123",
-      "role": "user"
-    }
-  ],
-  "demo_data": {
-    "tenant": "Demo Company (subdomain: demo)",
-    "projects": ["Demo Project A", "Demo Project B"],
-    "tasks": 5
-  },
-  "setup_commands": [
-    "cd backend",
-    "npm install",
-    "npx knex migrate:latest",
-    "npx knex seed:run",
-    "npm run dev"
-  ],
-  "features": [
-    "Multi-tenancy (subdomain isolation)",
-    "Super Admin (system-wide)",
-    "Role-based access (super_admin, tenant_admin, user)",
-    "JWT Authentication",
-    "Projects & Tasks CRUD",
-    "Audit logging"
-  ]
+    "tenants": [
+      {
+        "name": "Demo Company",
+        "subdomain": "demo",
+        "status": "active",
+        "subscriptionPlan": "pro",
+        "admin": {
+          "email": "admin@demo.com",
+          "password": "Demo@123",
+          "role": "tenant_admin"
+        },
+        "users": [
+          {
+            "email": "user1@demo.com",
+            "password": "User@123",
+            "role": "user"
+          },
+          {
+            "email": "user2@demo.com",
+            "password": "User@123",
+            "role": "user"
+          }
+        ],
+        "projects": ["Demo Project A", "Demo Project B"]
+      }
+    ]
+  }
 }
