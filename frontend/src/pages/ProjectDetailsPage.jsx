@@ -224,7 +224,7 @@ function ProjectDetailsPage() {
             {/* Empty state */}
             {!loading && filteredTasks.length === 0 && (
               <p className="text-muted">
-                No tasks yet. Click &quot;Add Task&quot; to create one.
+                No task yet. Click &quot;Add Task&quot; to create one.
               </p>
             )}
 
