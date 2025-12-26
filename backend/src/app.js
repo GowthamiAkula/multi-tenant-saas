@@ -37,7 +37,7 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use('/api/users', userRoutes);
-app.use('/api/projects', projectRoutes);
+app.use('/projects', projectRoutes);
 app.use('/api', taskRoutes);
 
 const PORT = process.env.PORT || 5000;

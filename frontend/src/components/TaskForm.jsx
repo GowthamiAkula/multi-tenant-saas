@@ -35,9 +35,9 @@ function TaskForm({ projectId, task, onClose }) {
       };
 
       if (isEdit) {
-        await api.put(`/api/tasks/${task.id}`, payload);
+        await api.put(`/tasks/${task.id}`, payload);
       } else {
-        await api.post(`/api/projects/${projectId}/tasks`, payload);
+        await api.post(`/projects/${projectId}/tasks`, payload);
       }
 
       onClose(true); // reload list

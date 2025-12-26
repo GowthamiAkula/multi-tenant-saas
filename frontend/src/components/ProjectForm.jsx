@@ -23,13 +23,13 @@ function ProjectForm({ project, onClose }) {
       setLoading(true);
 
       if (isEdit) {
-        await api.put(`/api/projects/${project.id}`, {
+        await api.put(`/projects/${project.id}`, {
           name,
           description,
           status
         });
       } else {
-        await api.post('/api/projects', {
+        await api.post('/projects', {
           name,
           description,
           status

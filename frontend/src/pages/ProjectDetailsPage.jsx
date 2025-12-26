@@ -27,8 +27,8 @@ function ProjectDetailsPage() {
       setLoading(true);
 
       const [projRes, tasksRes] = await Promise.all([
-        api.get(`/api/projects/${projectId}`),
-        api.get(`/api/projects/${projectId}/tasks`)
+        api.get(`/projects/${projectId}`),
+        api.get(`/projects/${projectId}/tasks`)
       ]);
 
       const projData = projRes.data.data || projRes.data;
@@ -58,7 +58,7 @@ function ProjectDetailsPage() {
     if (!ok) return;
 
     try {
-      await api.delete(`/api/projects/${project.id}`);
+      await api.delete(`/projects/${project.id}`);
       navigate('/projects');
     } catch (err) {
       const msg =
@@ -83,7 +83,7 @@ function ProjectDetailsPage() {
   const handleChangeTaskStatus = async (task, newStatus) => {
     try {
       await api.patch(
-        `/api/projects/${projectId}/tasks/${task.id}/status`,
+        `/projects/${projectId}/tasks/${task.id}/status`,
         { status: newStatus }
       );
       loadData();
@@ -101,7 +101,7 @@ function ProjectDetailsPage() {
     if (!ok) return;
 
     try {
-      await api.delete(`/api/projects/${projectId}/tasks/${task.id}`);
+      await api.delete(`/projects/${projectId}/tasks/${task.id}`);
       loadData();
     } catch (err) {
       const msg =
@@ -289,12 +289,10 @@ function ProjectDetailsPage() {
               </table>
             )}
 
-            {/* Project edit modal */}
             {showProjectForm && (
               <ProjectForm project={project} onClose={handleProjectFormClose} />
             )}
 
-            {/* Task create/edit modal */}
             {showTaskForm && (
               <TaskForm
                 projectId={project.id}

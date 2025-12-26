@@ -18,14 +18,12 @@ function DashboardPage() {
         setError('');
         setLoading(true);
 
-        // get first page of projects with max limit
-        const res = await api.get('/api/projects', {
+        const res = await api.get('/projects', {
           params: { page: 1, limit: 50 }
         });
 
         const data = res.data.data || res.data;
         const projects = data.projects || [];
-
         const totalProjects = data.total || projects.length;
 
         let totalTasks = 0;
@@ -59,6 +57,7 @@ function DashboardPage() {
 
     fetchData();
   }, []);
+
   return (
     <div className="container mt-4">
       <h2 className="mb-3">Dashboard</h2>
@@ -115,7 +114,6 @@ function DashboardPage() {
       </section>
     </div>
   );
-
 }
 
 export default DashboardPage;
