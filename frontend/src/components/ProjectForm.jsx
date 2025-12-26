@@ -18,6 +18,10 @@ function ProjectForm({ project, onClose }) {
       setError('Project name is required.');
       return;
     }
+    if (description.length > 500) {
+  setError('Description must be 500 characters or less.');
+  return;
+    }
 
     try {
       setLoading(true);
