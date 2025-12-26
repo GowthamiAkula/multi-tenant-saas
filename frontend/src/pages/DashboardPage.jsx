@@ -48,7 +48,7 @@ function DashboardPage() {
         const msg =
           err.response?.data?.message ||
           err.response?.data?.error ||
-          'Failed to load dashboard data.';
+          'Failed to load dashboard data.please try again and contact support ';
         setError(msg);
       } finally {
         setLoading(false);
