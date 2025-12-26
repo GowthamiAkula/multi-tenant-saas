@@ -22,6 +22,11 @@ function TaskForm({ projectId, task, onClose }) {
       setError('Task title is required.');
       return;
     }
+    if (title.length > 200) {
+  setError('Task title must be 200 characters or less.');
+  return;
+  }
+
 
     try {
       setLoading(true);
