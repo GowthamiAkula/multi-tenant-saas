@@ -125,7 +125,11 @@ function ProjectsPage() {
           {error}
         </div>
       )}
-      {loading && <div>Loading projects...</div>}
+      {loading && (
+  <div className="text-muted">
+    Loading projects, please wait...
+  </div>
+)}
 
       {!loading && projects.length === 0 && (
         <p className="text-muted">
