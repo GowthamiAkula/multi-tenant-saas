@@ -67,7 +67,12 @@ function DashboardPage() {
           {error}
         </div>
       )}
-      {loading && <div>Loading...</div>}
+      {loading && (
+  <div className="text-muted">
+    Loading dashboard statistics, please wait...
+  </div>
+      )}
+
 
       {/* Statistics */}
       <section className="mt-4">
