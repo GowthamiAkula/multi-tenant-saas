@@ -1,0 +1,6 @@
+CONTAINER ID   IMAGE                             COMMAND                  CREATED       STATUS                    PORTS                                         NAMES
+504d065938b4   multi-tenant-saas-frontend        "docker-entrypoint.s…"   7 days ago    Up 8 minutes              0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp   frontend
+2923c028507a   multi-tenant-saas-backend         "docker-entrypoint.s…"   7 days ago    Up 8 minutes              0.0.0.0:5000->5000/tcp, [::]:5000->5000/tcp   backend
+ec1da6cdf74e   postgres:16                       "docker-entrypoint.s…"   8 days ago    Up 17 minutes (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   database
+8bbbb1712ece   postgres:16                       "docker-entrypoint.s…"   11 days ago   Up 17 minutes             0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp   saas_db
+05afc8b83a54   secure_pki_2fa_microservice-app   "sh -c 'service cron…"   2 weeks ago   Up 17 minutes             0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp   pki-2fa-container

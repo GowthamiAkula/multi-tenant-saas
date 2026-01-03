@@ -1,0 +1,12 @@
+09b5a5e Add CHANGELOG.md with recent fixes
+f4fcd41 Add Git artifacts: branches, log, status
+683323b Update frontend README: confirm app working at localhost:3000
+cbe1f07 Improve dashboard loading message
+70c2ae2 Limit task title length to 200 characters
+add25a4 Add max length validation for project description
+e36fa72 Improve project details loading message
+29221a7 Improve projects loading message
+4a61839 Improve dashboard error message
+ce6ba9c Fix API base URL and routes
+e45683e Update submission.json with correct test credentials
+1d23622 Initial commit: multi-tenant SaaS backend & frontend
