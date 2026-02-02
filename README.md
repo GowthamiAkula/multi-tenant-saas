@@ -230,3 +230,32 @@ This endpoint returns a JSON response only after:
 
 This allows automated scripts to know when the application is ready for testing.
 
+## ✅ Backend Verification 
+
+The backend APIs are fully functional and verified using Docker.
+
+### Health Check
+GET /api/health
+
+### Authentication
+POST /api/auth/login  
+Returns JWT token
+
+### Projects
+GET /api/projects
+
+### Project Tasks
+GET /api/projects/:projectId/tasks
+
+📂 Screenshots for all verified APIs are available in `/screenshots`
+
+
+# API Verification Screenshots
+
+1. Docker containers running successfully
+2. Backend health check
+3. Authentication success
+4. Project listing API
+5. Project tasks API
+
+

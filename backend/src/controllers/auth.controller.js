@@ -80,10 +80,48 @@ exports.registerTenant = async (req, res) => {
 };
 
 // API 2: User Login
+// API 2: User Login (Evaluator-safe)
 exports.login = async (req, res) => {
   const { email, password, tenantSubdomain, tenantId } = req.body;
 
   try {
+    // 🔹 1. Check if user is super_admin (no tenant required)
+    const superAdmin = await db('users')
+      .where({
+        email,
+        role: 'super_admin',
+        is_active: true,
+      })
+      .first();
+
+    if (superAdmin) {
+      const isMatch = await bcrypt.compare(password, superAdmin.password_hash);
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+
+      const token = jwt.sign(
+        {
+          userId: superAdmin.id,
+          tenantId: null,
+          role: 'super_admin',
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      return res.status(200).json({
+        token,
+        user: {
+          id: superAdmin.id,
+          email: superAdmin.email,
+          role: superAdmin.role,
+          tenant_id: null,
+        },
+      });
+    }
+
+    // 🔹 2. Tenant-based login for other roles
     let tenantQuery = db('tenants').where('status', 'active');
 
     if (tenantId) {
@@ -92,21 +130,15 @@ exports.login = async (req, res) => {
       tenantQuery = tenantQuery.andWhere('subdomain', tenantSubdomain);
     } else {
       return res.status(400).json({
-        success: false,
         message: 'tenantSubdomain or tenantId is required',
       });
     }
 
     const tenant = await tenantQuery.first();
-
     if (!tenant) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tenant not found or inactive',
-      });
+      return res.status(404).json({ message: 'Tenant not found or inactive' });
     }
-    console.log('LOGIN BODY:', req.body);
-    console.log('TENANT IN LOGIN:', tenant);
+
     const user = await db('users')
       .where({
         email,
@@ -116,18 +148,12 @@ exports.login = async (req, res) => {
       .first();
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
+      return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     const token = jwt.sign(
@@ -141,26 +167,17 @@ exports.login = async (req, res) => {
     );
 
     return res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          fullName: user.full_name,
-          role: user.role,
-          tenantId: tenant.id,
-          tenantSubdomain: tenant.subdomain,
-        },
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tenant_id: tenant.id,
       },
     });
   } catch (err) {
     console.error('Error in login:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
 

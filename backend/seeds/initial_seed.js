@@ -1,24 +1,33 @@
+const bcrypt = require('bcryptjs');
+
 exports.seed = async function (knex) {
-  // 1. Clear existing data in correct order (tasks -> projects -> users -> tenants)
+  // 1. Clear existing data in correct order
   await knex('tasks').del();
   await knex('projects').del();
   await knex('users').del();
   await knex('tenants').del();
 
-  // 1a. Insert super admin
-  // password = Admin@123 (bcrypt hash)
+  // ----------------------------
+  // 1. Insert super admin
+  // email: superadmin@system.com
+  // password: Admin@123
+  // ----------------------------
+  const superAdminPasswordHash = await bcrypt.hash('Admin@123', 12);
+
   const [superAdmin] = await knex('users')
     .insert({
       tenant_id: null,
       email: 'superadmin@system.com',
-      password_hash: '$2a$12$VzNtAOlqcQqvF7LQH0fr5eJYOvM3ZrQpo/0fbjC9tJRt8a9yACkRC', // Admin@123
+      password_hash: superAdminPasswordHash,
       full_name: 'System Super Admin',
       role: 'super_admin',
       is_active: true,
     })
     .returning('*');
 
+  // ----------------------------
   // 2. Insert demo tenant
+  // ----------------------------
   const [demoTenant] = await knex('tenants')
     .insert({
       name: 'Demo Company',
@@ -30,21 +39,29 @@ exports.seed = async function (knex) {
     })
     .returning('*');
 
-  // 3. Insert tenant admin for Demo Company
+  // ----------------------------
+  // 3. Insert tenant admin
+  // email: admin@demo.com
+  // password: Demo@123
+  // ----------------------------
+  const tenantAdminPasswordHash = await bcrypt.hash('Demo@123', 12);
+
   const [tenantAdmin] = await knex('users')
     .insert({
       tenant_id: demoTenant.id,
       email: 'admin@demo.com',
-      password_hash: '$2a$12$b85nrYUFAMFdpl95p.K0/uIFmXBK33ErtijbPyMh3bZL.GsAOQgY.', // Demo@123
+      password_hash: tenantAdminPasswordHash,
       full_name: 'Demo Admin',
       role: 'tenant_admin',
       is_active: true,
     })
     .returning('*');
 
-  // 4. Insert 2 regular users (password = User@123)
-  const userPasswordHash =
-    '$2b$12$tgVKscaAFm6MFnm1foyK8.QDD1UUfQoLrAjXIFrnGr2M.lGi7VXCW';
+  // ----------------------------
+  // 4. Insert regular users
+  // password: User@123
+  // ----------------------------
+  const userPasswordHash = await bcrypt.hash('User@123', 12);
 
   const [user1] = await knex('users')
     .insert({
@@ -68,7 +85,9 @@ exports.seed = async function (knex) {
     })
     .returning('*');
 
-  // 5. Insert 2 sample projects for demo tenant
+  // ----------------------------
+  // 5. Insert demo projects
+  // ----------------------------
   const [project1] = await knex('projects')
     .insert({
       tenant_id: demoTenant.id,
@@ -89,7 +108,9 @@ exports.seed = async function (knex) {
     })
     .returning('*');
 
-  // 6. Insert 5 sample tasks across the two projects
+  // ----------------------------
+  // 6. Insert demo tasks
+  // ----------------------------
   await knex('tasks').insert([
     {
       tenant_id: demoTenant.id,

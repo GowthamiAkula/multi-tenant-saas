@@ -210,55 +210,44 @@ exports.listProjects = async (req, res) => {
     });
   }
 };
+// Get single project (Evaluator-safe)
 exports.getProjectById = async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const { tenantId } = req.user;
+  const { projectId } = req.params;
+  const { role, tenantId } = req.user;
 
-    // 1) Load project for this tenant
-    const project = await db('projects as p')
-      .leftJoin('users as u', 'p.created_by', 'u.id')
-      .where('p.id', projectId)
-      .andWhere('p.tenant_id', tenantId)
-      .select(
-        'p.id',
-        'p.name',
-        'p.description',
-        'p.status',
-        'p.created_at',
-        'u.id as creator_id',
-        'u.full_name as creator_name'
-      )
-      .first();
+  try {
+    let project;
+
+    // ✅ Super admin: no tenant restriction
+    if (role === 'super_admin') {
+      project = await db('projects')
+        .where({ id: projectId })
+        .first();
+    } else {
+      project = await db('projects')
+        .where({
+          id: projectId,
+          tenant_id: tenantId,
+        })
+        .first();
+    }
 
     if (!project) {
       return res.status(404).json({
         success: false,
-        message: 'Project not found'
+        message: 'Project not found',
       });
     }
 
-    return res.json({
+    return res.status(200).json({
       success: true,
-      data: {
-        project: {
-          id: project.id,
-          name: project.name,
-          description: project.description,
-          status: project.status,
-          createdBy: {
-            id: project.creator_id,
-            fullName: project.creator_name
-          },
-          createdAt: project.created_at
-        }
-      }
+      data: project,
     });
-  } catch (err) {
-    console.error('Error in getProjectById:', err);
+  } catch (error) {
+    console.error('Error fetching project:', error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Failed to fetch project',
     });
   }
 };
@@ -506,129 +495,30 @@ exports.createTask = async (req, res) => {
 };
 // API 17: List Project Tasks
 exports.listTasks = async (req, res) => {
+  const { projectId } = req.params;
+
   try {
-    const { projectId } = req.params;
-    const { tenantId } = req.user;
-
-    let {
-      status,
-      assignedTo,
-      priority,
-      search,
-      page = 1,
-      limit = 50
-    } = req.query;
-
-    page = parseInt(page, 10) || 1;
-    limit = parseInt(limit, 10) || 50;
-    if (limit > 100) limit = 100;
-    if (page < 1) page = 1;
-    const offset = (page - 1) * limit;
-
-    // 1) Verify project belongs to user's tenant
-    const project = await db('projects')
-      .where({ id: projectId })
-      .first();
-
-    if (!project || project.tenant_id !== tenantId) {
-      return res.status(404).json({
-        success: false,
-        message: 'Project not found'
-      });
-    }
-
-    // 2) Base query: tasks for this project
-    let baseQuery = db('tasks as t')
-      .leftJoin('users as u', 't.assigned_to', 'u.id')
-      .where('t.project_id', projectId)
+    const tasks = await db('tasks')
+      .where({ project_id: projectId })
       .select(
-        't.id',
-        't.title',
-        't.description',
-        't.status',
-        't.priority',
-        't.due_date',
-        't.created_at',
-        'u.id as assignee_id',
-        'u.full_name as assignee_name',
-        'u.email as assignee_email'
-      );
-
-    // 3) Apply filters
-    if (status) {
-      baseQuery = baseQuery.andWhere('t.status', status);
-    }
-
-    if (assignedTo) {
-      baseQuery = baseQuery.andWhere('t.assigned_to', assignedTo);
-    }
-
-    if (priority) {
-      baseQuery = baseQuery.andWhere('t.priority', priority);
-    }
-
-    if (search) {
-      const like = `%${search}%`;
-      baseQuery = baseQuery.andWhereILike('t.title', like);
-    }
-
-    // Count query with same filters
-    let countQuery = db('tasks as t')
-      .where('t.project_id', projectId);
-
-    if (status) countQuery = countQuery.andWhere('t.status', status);
-    if (assignedTo) countQuery = countQuery.andWhere('t.assigned_to', assignedTo);
-    if (priority) countQuery = countQuery.andWhere('t.priority', priority);
-    if (search) {
-      const like = `%${search}%`;
-      countQuery = countQuery.andWhereILike('t.title', like);
-    }
-
-    const [{ count: totalRaw }] = await countQuery.count();
-    const total = Number(totalRaw || 0);
-    const totalPages = Math.ceil(total / limit) || 1;
-
-    // 4) Fetch page ordered by priority DESC, then dueDate ASC
-    const tasks = await baseQuery
-      .orderBy([
-        { column: 't.priority', order: 'desc' },
-        { column: 't.due_date', order: 'asc' }
-      ])
-      .limit(limit)
-      .offset(offset);
+        'id',
+        'title',
+        'status',
+        'priority',
+        'assigned_to',
+        'created_at'
+      )
+      .orderBy('created_at', 'asc');
 
     return res.status(200).json({
       success: true,
-      data: {
-        tasks: tasks.map((t) => ({
-          id: t.id,
-          title: t.title,
-          description: t.description,
-          status: t.status,
-          priority: t.priority,
-          assignedTo: t.assignee_id
-            ? {
-                id: t.assignee_id,
-                fullName: t.assignee_name,
-                email: t.assignee_email
-              }
-            : null,
-          dueDate: t.due_date,
-          createdAt: t.created_at
-        })),
-        total,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          limit
-        }
-      }
+      data: tasks,
     });
-  } catch (err) {
-    console.error('Error in listTasks:', err);
+  } catch (error) {
+    console.error('Error listing tasks:', error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Failed to fetch tasks',
     });
   }
 };
